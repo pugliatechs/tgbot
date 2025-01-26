@@ -134,13 +134,14 @@ The bot uses `slog` for structured logging. Enable debug-level logging by settin
 
 ```
 .
-├── main.go                # Entry point for the bot
+├── cmd
+│   └── main.go            # Entry point for the bot
 ├── internal
 │   ├── telegram           # Telegram-related functionality
 │   ├── welcome            # Welcome message logic
 │   └── ollama             # Name classification logic
 ├── go.mod                 # Module dependencies
-└── README.md              # Project documentation
+└── README.md     
 ```
 
 ---
