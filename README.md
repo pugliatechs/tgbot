@@ -19,7 +19,7 @@ PugliaTechs Telegram Bot is a group assistant designed to welcome new members, c
 
    ```bash
    git clone https://github.com/pugliatechs/tgbot.git
-   cd pugliatechs-bot
+   cd tgbot
    ```
 
 2. Set up your environment variables:
