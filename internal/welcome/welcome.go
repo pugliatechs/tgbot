@@ -65,19 +65,25 @@ func HandleNewMember(ctx context.Context, firstName string, chatID int64, ollama
 // isItalianName determines if a name is likely Italian using Ollama API.
 func isItalianName(ctx context.Context, firstName, ollamaHost, ollamaModel string) (bool, error) {
 	slog.Debug("Checking if name is Italian", "name", firstName)
+
+	// Create the prompt for Ollama
 	prompt := fmt.Sprintf(
 		"You are a name classifier. I will give you a first name, and you reply with exactly one word: either 'ITALIAN' if this name is likely from an Italian person, or 'FOREIGN' if it is not. The name is: \"%s\".\n\nAnswer:", firstName)
 
 	payload := map[string]interface{}{
-		"prompt": prompt,
-		"model":  ollamaModel,
+		"prompt":      prompt,
+		"model":       ollamaModel,
+		"temperature": 0.0,
+		"top_p":       1.0,
 	}
 
+	// Marshal payload
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return false, err
 	}
 
+	// Send request to Ollama
 	req, err := http.NewRequestWithContext(ctx, "POST", ollamaHost+"/api/generate", bytes.NewBuffer(body))
 	if err != nil {
 		return false, err
@@ -91,26 +97,36 @@ func isItalianName(ctx context.Context, firstName, ollamaHost, ollamaModel strin
 	}
 	defer resp.Body.Close()
 
+	// Handle response status code
 	if resp.StatusCode != http.StatusOK {
 		errBody, _ := io.ReadAll(resp.Body)
-		slog.Warn("Ollama API error", "statusCode", resp.StatusCode, "errorBody", string(errBody))
 		return false, fmt.Errorf("ollama returned %d: %s", resp.StatusCode, string(errBody))
 	}
 
+	// Process response chunks
 	var sb strings.Builder
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
-		sb.WriteString(scanner.Text())
+		var chunk struct {
+			Response string `json:"response"`
+			Done     bool   `json:"done"`
+		}
+		if err := json.Unmarshal(scanner.Bytes(), &chunk); err != nil {
+			return false, err
+		}
+		sb.WriteString(chunk.Response)
+		if chunk.Done {
+			break
+		}
 	}
 	if err := scanner.Err(); err != nil {
-		return false, fmt.Errorf("error reading response: %w", err)
+		return false, err
 	}
 
-	response := strings.ToUpper(strings.TrimSpace(sb.String()))
+	// Trim and normalize the response text
+	fullText := strings.TrimSpace(strings.ToUpper(sb.String()))
+	slog.Debug("Ollama classification result", "name", firstName, "raw", fullText)
 
-	// Log the response in debug mode
-	slog.Debug("Ollama response received", "response", response)
-
-	return response == "ITALIAN", nil
+	// Return comparison result
+	return fullText == "ITALIAN", nil
 }
-

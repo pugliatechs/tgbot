@@ -5,11 +5,16 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+    "sync"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var bot *tgbotapi.BotAPI
+var (
+	bot          *tgbotapi.BotAPI
+	connected    bool
+	statusMutex  sync.RWMutex // Protects the `connected` variable
+)
 
 // StartBot initializes the Telegram bot and processes updates.
 func StartBot(ctx context.Context, token string, version string, handleNewMember func(ctx context.Context, firstName string, chatID int64)) error {
@@ -17,29 +22,43 @@ func StartBot(ctx context.Context, token string, version string, handleNewMember
 	var err error
 	bot, err = tgbotapi.NewBotAPI(token)
 	if err != nil {
+		setConnectionStatus(false)
 		return fmt.Errorf("failed to create Telegram bot: %w", err)
 	}
+	setConnectionStatus(true)
 	slog.Debug("Bot authorized successfully", "username", bot.Self.UserName)
 
-	updates := bot.GetUpdatesChan(tgbotapi.NewUpdate(0))
-	slog.Debug("Listening for updates")
+	go func() {
+		updates := bot.GetUpdatesChan(tgbotapi.NewUpdate(0))
+	    slog.Debug("Listening for updates")
+		for update := range updates {
+			if update.Message == nil {
+				continue
+			}
 
-	for update := range updates {
-		if update.Message == nil {
-			continue
-		}
-
-		slog.Debug("Processing update", "updateID", update.UpdateID, "chatID", update.Message.Chat.ID)
-
-		if len(update.Message.NewChatMembers) > 0 {
-			slog.Debug("New members joined", "membersCount", len(update.Message.NewChatMembers))
-			for _, newUser := range update.Message.NewChatMembers {
-				handleNewMember(ctx, newUser.FirstName, update.Message.Chat.ID)
+			if len(update.Message.NewChatMembers) > 0 {
+				for _, newUser := range update.Message.NewChatMembers {
+					handleNewMember(ctx, newUser.FirstName, update.Message.Chat.ID)
+				}
 			}
 		}
-	}
+	}()
 
 	return nil
+}
+
+// setConnectionStatus updates the connected status of the bot.
+func setConnectionStatus(status bool) {
+	statusMutex.Lock()
+	defer statusMutex.Unlock()
+	connected = status
+}
+
+// IsConnected returns the current connection status of the bot.
+func IsConnected() bool {
+	statusMutex.RLock()
+	defer statusMutex.RUnlock()
+	return connected
 }
 
 // SendMessage sends a message to a specific chat in Telegram.

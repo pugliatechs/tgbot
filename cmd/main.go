@@ -3,12 +3,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"strings"
 
 	"tgbot/internal/telegram"
-    "tgbot/internal/welcome"
+	"tgbot/internal/welcome"
 )
 
 // Config holds configuration values
@@ -18,6 +20,7 @@ type Config struct {
 	OllamaModel   string
 	LumaURL       string
 	LogLevel      string
+    HttpPort      string
     Version       string
 }
 
@@ -29,6 +32,7 @@ func loadConfig() (*Config, error) {
 		OllamaModel:   os.Getenv("OLLAMA_MODEL"),
 		LumaURL:       "https://api.lu.ma/calendar/get-items?calendar_api_id=cal-slXbDWpGDzDpbwS&period=future&pagination_limit=20",
 		LogLevel:      os.Getenv("LOG_LEVEL"),
+        HttpPort:      os.Getenv("HTTP_PORT"),
         Version:       "1.0.0",
 	}
 
@@ -80,14 +84,35 @@ func main() {
 
 	// Initialize Telegram Bot
 	ctx := context.Background()
-	err = telegram.StartBot(ctx, cfg.TelegramToken, cfg.Version, func(ctx context.Context, firstName string, chatID int64) {
-		slog.Debug("New member detected", "firstName", firstName, "chatID", chatID)
-		welcome.HandleNewMember(ctx, firstName, chatID, cfg.OllamaHost, cfg.OllamaModel)
+	go func() {
+		err = telegram.StartBot(ctx, cfg.TelegramToken, cfg.Version, func(ctx context.Context, firstName string, chatID int64) {
+			slog.Debug("New member detected", "firstName", firstName, "chatID", chatID)
+			welcome.HandleNewMember(ctx, firstName, chatID, cfg.OllamaHost, cfg.OllamaModel)
+		})
+		if err != nil {
+			slog.Error("Failed to start Telegram bot", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	// Start HTTP server for health endpoint
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		if telegram.IsConnected() {
+			slog.Debug("Health check passed")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("OK"))
+		} else {
+			slog.Warn("Health check failed: Telegram bot is disconnected")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("ERROR: Telegram bot is disconnected"))
+		}
 	})
-	if err != nil {
-		slog.Error("Failed to start Telegram bot", "error", err)
+
+	port := cfg.HttpPort
+	slog.Info("Starting HTTP server", "port", port)
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
+		slog.Error("Failed to start HTTP server", "error", err)
 		os.Exit(1)
 	}
-	slog.Info("Telegram bot stopped gracefully")
 }
 
