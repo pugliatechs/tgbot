@@ -36,8 +36,16 @@ func StartBot(ctx context.Context, token string, version string, handleNewMember
 				continue
 			}
 
+			// Process new chat members
 			if len(update.Message.NewChatMembers) > 0 {
 				for _, newUser := range update.Message.NewChatMembers {
+					// Skip processing if the bot is the one joining
+					if newUser.ID == bot.Self.ID {
+						slog.Debug("Bot joined a group, ignoring", "chatID", update.Message.Chat.ID)
+						continue
+					}
+
+					// Handle new members
 					handleNewMember(ctx, newUser.FirstName, update.Message.Chat.ID)
 				}
 			}

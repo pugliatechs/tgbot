@@ -33,7 +33,7 @@ func loadConfig() (*Config, error) {
 		LumaURL:       "https://api.lu.ma/calendar/get-items?calendar_api_id=cal-slXbDWpGDzDpbwS&period=future&pagination_limit=20",
 		LogLevel:      os.Getenv("LOG_LEVEL"),
         HttpPort:      os.Getenv("HTTP_PORT"),
-        Version:       "1.0.0",
+        Version:       "1.0.1",
 	}
 
 	if cfg.OllamaHost == "" {

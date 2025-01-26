@@ -124,9 +124,15 @@ func isItalianName(ctx context.Context, firstName, ollamaHost, ollamaModel strin
 	}
 
 	// Trim and normalize the response text
-	fullText := strings.TrimSpace(strings.ToUpper(sb.String()))
-	slog.Debug("Ollama classification result", "name", firstName, "raw", fullText)
+	fullText := strings.TrimSpace(sb.String())
+	fullTextUpper := strings.ToUpper(fullText)
 
-	// Return comparison result
-	return fullText == "ITALIAN", nil
+	// Log raw bytes for debugging
+	slog.Debug("Ollama classification result (raw bytes)", "name", firstName, "rawBytes", []byte(fullText))
+	slog.Debug("Ollama classification result (processed)", "name", firstName, "raw", fullTextUpper)
+
+	// Use "contains" for classification check
+	isItalian := strings.Contains(fullTextUpper, "ITALIAN")
+
+	return isItalian, nil
 }
