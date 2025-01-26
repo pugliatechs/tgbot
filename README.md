@@ -18,7 +18,7 @@ PugliaTechs Telegram Bot is a group assistant designed to welcome new members, c
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-repo/pugliatechs-bot.git
+   git clone https://github.com/pugliatechs/tgbot.git
    cd pugliatechs-bot
    ```
 
