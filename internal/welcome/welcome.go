@@ -30,12 +30,14 @@ func HandleNewMember(ctx context.Context, firstName string, chatID int64, ollama
 	if likelyItalian {
 		welcomeMessage = fmt.Sprintf(
 			"Ciao %s! Benvenutə nel gruppo PugliaTechs, il Global Tech Hub della Puglia. Condividiamo passione per business, innovazione e tecnologia.\n\n"+
+                "Siamo un gruppo bilingue: puoi scrivere in italiano o in inglese (o usare la funzione di traduzione di Telegram se necessario).\n"+
 				"Alcuni link utili:\n"+
 				"• Manifesto: https://www.pugliatechs.com/manifesto\n"+
 				"• Eventi: https://lu.ma/pugliatechs\n"+
 				"• LinkedIn: https://www.linkedin.com/company/pugliatechs\n"+
 				"• Instagram: https://www.instagram.com/pugliatechs\n"+
-				"• YouTube: https://youtube.com/@pugliatechs\n\n"+
+				"• YouTube: https://youtube.com/@pugliatechs\n"+
+				"• GitHub: https://github.com/pugliatechs\n\n"+
 				"Siamo felici di averti con noi!\n"+
 				"Scrivi una breve introduzione su di te.",
 			firstName,
@@ -43,12 +45,14 @@ func HandleNewMember(ctx context.Context, firstName string, chatID int64, ollama
 	} else {
 		welcomeMessage = fmt.Sprintf(
 			"Hello %s! Welcome to the PugliaTechs group, the Global Tech Hub of Puglia where we share a passion for business, innovation, and tech.\n\n"+
+                "We’re a bilingual group: feel free to write in Italian or English (or use Telegram’s translation feature if needed).\n"+
 				"Some useful links:\n"+
 				"• Manifesto: https://www.pugliatechs.com/manifesto\n"+
 				"• Upcoming events: https://lu.ma/pugliatechs\n"+
 				"• LinkedIn: https://www.linkedin.com/company/pugliatechs\n"+
 				"• Instagram: https://www.instagram.com/pugliatechs\n"+
-				"• YouTube: https://youtube.com/@pugliatechs\n\n"+
+				"• YouTube: https://youtube.com/@pugliatechs\n"+
+				"• GitHub: https://github.com/pugliatechs\n\n"+
 				"Glad to have you on board!\n"+
 				"Write a quick intro about yourself.",
 			firstName,

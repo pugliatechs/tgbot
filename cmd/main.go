@@ -15,25 +15,25 @@ import (
 
 // Config holds configuration values
 type Config struct {
-	TelegramToken string
-	OllamaHost    string
-	OllamaModel   string
-	LumaURL       string
-	LogLevel      string
+    TelegramToken string
+    OllamaHost    string
+    OllamaModel   string
+    LumaURL       string
+    LogLevel      string
     HttpPort      string
     Version       string
 }
 
 // loadConfig initializes and validates environment variables.
 func loadConfig() (*Config, error) {
-	cfg := &Config{
-		TelegramToken: os.Getenv("TELEGRAM_BOT_TOKEN"),
-		OllamaHost:    os.Getenv("OLLAMA_HOST"),
-		OllamaModel:   os.Getenv("OLLAMA_MODEL"),
-		LumaURL:       "https://api.lu.ma/calendar/get-items?calendar_api_id=cal-slXbDWpGDzDpbwS&period=future&pagination_limit=20",
-		LogLevel:      os.Getenv("LOG_LEVEL"),
+    cfg := &Config{
+        TelegramToken: os.Getenv("TELEGRAM_BOT_TOKEN"),
+        OllamaHost:    os.Getenv("OLLAMA_HOST"),
+        OllamaModel:   os.Getenv("OLLAMA_MODEL"),
+        LumaURL:       "https://api.lu.ma/calendar/get-items?calendar_api_id=cal-slXbDWpGDzDpbwS&period=future&pagination_limit=20",
+        LogLevel:      os.Getenv("LOG_LEVEL"),
         HttpPort:      os.Getenv("HTTP_PORT"),
-        Version:       "1.0.1",
+        Version:       "1.0.2",
 	}
 
 	if cfg.OllamaHost == "" {
